@@ -45,3 +45,27 @@ Book         library[MAX_BOOKS];
 BorrowRecord borrows[MAX_BORROWS];
 int          bookCount   = 0;
 int          borrowCount = 0;
+
+/* ── Utility Helpers ─────────────────────────────────────── */
+
+void readLine(const char *prompt, char *buffer, int size) {
+    printf("%s", prompt);
+    fflush(stdout);
+    int c;
+    while ((c = getchar()) == '\n' || c == '\r');
+    ungetc(c, stdin);
+    if (fgets(buffer, size, stdin) != NULL) {
+        buffer[strcspn(buffer, "\r\n")] = '\0';
+    }
+}
+
+int findBook(const char *id) {
+    for (int i = 0; i < bookCount; i++) {
+        if (strcmp(library[i].id, id) == 0) return i;
+    }
+    return -1;
+}
+
+void generateBookId(char *out)   { sprintf(out, "LIB%03d", bookCount + 1); }
+void generateBorrowId(char *out) { sprintf(out, "BRW%03d", borrowCount + 1); }
+void printLine() { printf("--------------------------------------------------\n"); }
