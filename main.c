@@ -69,3 +69,21 @@ int findBook(const char *id) {
 void generateBookId(char *out)   { sprintf(out, "LIB%03d", bookCount + 1); }
 void generateBorrowId(char *out) { sprintf(out, "BRW%03d", borrowCount + 1); }
 void printLine() { printf("--------------------------------------------------\n"); }
+
+/* ── 1. Add Book ─────────────────────────────────────────── */
+
+void addBook() {
+    if (bookCount >= MAX_BOOKS) {
+        printf("Library catalogue is full.\n");
+        return;
+    }
+    Book b;
+    generateBookId(b.id);
+    readLine("Enter book title  : ", b.title, TITLE_LEN);
+    readLine("Enter author name : ", b.author, AUTHOR_LEN);
+    printf("Enter publication year : "); scanf("%d", &b.year);
+    printf("Enter number of copies : "); scanf("%d", &b.totalCopies);
+    b.availableCopies = b.totalCopies;
+    library[bookCount++] = b;
+    printf("\nBook added successfully! Assigned ID: %s\n", b.id);
+}
