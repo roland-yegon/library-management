@@ -97,8 +97,8 @@ void updateBook() {
     if (idx == -1) { printf("Book ID '%s' not found.\n", id); return; }
 
     printf("\nCurrent: [%s] %s by %s (%d) | Copies: %d/%d\n",
-           library[idx].id, library[idx].title, library[idx].author,
-           library[idx].year, library[idx].availableCopies, library[idx].totalCopies);
+            library[idx].id, library[idx].title, library[idx].author,
+            library[idx].year, library[idx].availableCopies, library[idx].totalCopies);
     printf("Enter new values (press Enter to keep current):\n");
 
     char buf[TITLE_LEN];
@@ -113,8 +113,8 @@ void updateBook() {
     int cp; scanf("%d", &cp);
     if (cp != 0) {
         int diff = cp - library[idx].totalCopies;
-       library[idx].totalCopies = cp;
-       library[idx].availableCopies += diff;
+        library[idx].totalCopies = cp;
+        library[idx].availableCopies += diff;
         if (library[idx].availableCopies < 0) library[idx].availableCopies = 0;
     }
     printf("Book updated successfully.\n");
@@ -175,8 +175,8 @@ void displayAllBooks() {
     else {
         for (int i = 0; i < bookCount; i++) {
             printf("  [%s] %s\n       Author : %s\n       Year   : %d\n       Copies : %d available / %d total\n\n",
-                   library[i].id, library[i].title, library[i].author,
-                   library[i].year, library[i].availableCopies, library[i].totalCopies);
+                    library[i].id, library[i].title, library[i].author,
+                    library[i].year, library[i].availableCopies, library[i].totalCopies);
         }
     }
     printLine();
@@ -194,8 +194,8 @@ void reportAvailableBooks() {
     for (int i = 0; i < bookCount; i++) {
         if (library[i].availableCopies > 0) {
             printf("  %-8s | %-35s | %-20s | %d | Copies: %d/%d\n",
-                   library[i].id, library[i].title, library[i].author,
-                   library[i].year, library[i].availableCopies, library[i].totalCopies);
+                    library[i].id, library[i].title, library[i].author,
+                    library[i].year, library[i].availableCopies, library[i].totalCopies);
             count++;
         }
     }
@@ -217,8 +217,8 @@ void reportBorrowedBooks() {
             int idx = findBook(borrows[i].bookId);
             char *title = (idx != -1) ? library[idx].title : "(unknown)";
             printf("  %-8s | %-25s | %-12s | %-25s | %s\n",
-                   borrows[i].borrowId, borrows[i].studentName,
-                   borrows[i].studentId, title, borrows[i].borrowDate);
+                    borrows[i].borrowId, borrows[i].studentName,
+                    borrows[i].studentId, title, borrows[i].borrowDate);
             count++;
         }
     }
