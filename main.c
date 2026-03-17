@@ -87,3 +87,35 @@ void addBook() {
     library[bookCount++] = b;
     printf("\nBook added successfully! Assigned ID: %s\n", b.id);
 }
+
+/* ── 2. Update Book ──────────────────────────────────────── */
+
+void updateBook() {
+    char id[ID_LEN];
+    readLine("Enter Book ID to update: ", id, ID_LEN);
+    int idx = findBook(id);
+    if (idx == -1) { printf("Book ID '%s' not found.\n", id); return; }
+
+    printf("\nCurrent: [%s] %s by %s (%d) | Copies: %d/%d\n",
+           library[idx].id, library[idx].title, library[idx].author,
+           library[idx].year, library[idx].availableCopies, library[idx].totalCopies);
+    printf("Enter new values (press Enter to keep current):\n");
+
+    char buf[TITLE_LEN];
+    readLine("New title  : ", buf, TITLE_LEN);
+    if (strlen(buf) > 0) strcpy(library[idx].title, buf);
+    readLine("New author : ", buf, AUTHOR_LEN);
+    if (strlen(buf) > 0) strcpy(library[idx].author, buf);
+    printf("New year (0 to keep %d): ", library[idx].year);
+    int yr; scanf("%d", &yr);
+    if (yr != 0) library[idx].year = yr;
+    printf("New total copies (0 to keep %d): ", library[idx].totalCopies);
+    int cp; scanf("%d", &cp);
+    if (cp != 0) {
+        int diff = cp - library[idx].totalCopies;
+        library[idx].totalCopies = cp;
+        library[idx].availableCopies += diff;
+        if (library[idx].availableCopies < 0) library[idx].availableCopies = 0;
+    }
+    printf("Book updated successfully.\n");
+}
