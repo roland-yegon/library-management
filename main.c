@@ -38,3 +38,10 @@ typedef struct {
     char returnDate[20];
     int  returned;
 } BorrowRecord;
+
+/* ── Global State ────────────────────────────────────────── */
+
+Book         library[MAX_BOOKS];
+BorrowRecord borrows[MAX_BORROWS];
+int          bookCount   = 0;
+int          borrowCount = 0;
