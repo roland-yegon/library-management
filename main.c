@@ -204,3 +204,26 @@ void reportAvailableBooks() {
     printf("  Total available titles: %d\n", count);
     printLine();
 }
+
+/* ── 7. Report: Borrowed Books ───────────────────────────── */
+
+void reportBorrowedBooks() {
+    printLine();
+    printf("  REPORT: BORROWED BOOKS\n");
+    printLine();
+    int count = 0;
+    for (int i = 0; i < borrowCount; i++) {
+        if (borrows[i].returned == 0) {
+            int idx = findBook(borrows[i].bookId);
+            char *title = (idx != -1) ? library[idx].title : "(unknown)";
+            printf("  %-8s | %-25s | %-12s | %-25s | %s\n",
+                   borrows[i].borrowId, borrows[i].studentName,
+                   borrows[i].studentId, title, borrows[i].borrowDate);
+            count++;
+        }
+    }
+    if (count == 0) printf("  No books currently on loan.\n");
+    printLine();
+    printf("  Total on loan: %d\n", count);
+    printLine();
+}
