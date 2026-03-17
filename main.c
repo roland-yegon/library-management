@@ -145,3 +145,22 @@ void borrowBook() {
     printf("\nBook '%s' borrowed! Record ID: %s | Copies left: %d\n",
             library[idx].title, rec.borrowId, library[idx].availableCopies);
 }
+
+/* ── 4. Return Book ──────────────────────────────────────── */
+
+void returnBook() {
+    char bid[ID_LEN];
+    readLine("Enter Borrow Record ID: ", bid, ID_LEN);
+    int found = -1;
+    for (int i = 0; i < borrowCount; i++) {
+        if (strcmp(borrows[i].borrowId, bid) == 0 && borrows[i].returned == 0) {
+            found = i; break;
+        }
+    }
+    if (found == -1) { printf("No active record found for ID '%s'.\n", bid); return; }
+    readLine("Return Date (DD/MM/YYYY): ", borrows[found].returnDate, 20);
+    borrows[found].returned = 1;
+    int idx = findBook(borrows[found].bookId);
+    if (idx != -1) library[idx].availableCopies++;
+    printf("\nBook returned successfully. Thank you, %s!\n", borrows[found].studentName);
+}
