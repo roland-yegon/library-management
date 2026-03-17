@@ -183,3 +183,24 @@ void displayAllBooks() {
     printf("  Total titles: %d\n", bookCount);
     printLine();
 }
+
+/* ── 6. Report: Available Books ──────────────────────────── */
+
+void reportAvailableBooks() {
+    printLine();
+    printf("  REPORT: AVAILABLE BOOKS\n");
+    printLine();
+    int count = 0;
+    for (int i = 0; i < bookCount; i++) {
+        if (library[i].availableCopies > 0) {
+            printf("  %-8s | %-35s | %-20s | %d | Copies: %d/%d\n",
+                   library[i].id, library[i].title, library[i].author,
+                   library[i].year, library[i].availableCopies, library[i].totalCopies);
+            count++;
+        }
+    }
+    if (count == 0) printf("  No books currently available.\n");
+    printLine();
+    printf("  Total available titles: %d\n", count);
+    printLine();
+}
