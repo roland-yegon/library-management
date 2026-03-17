@@ -97,8 +97,8 @@ void updateBook() {
     if (idx == -1) { printf("Book ID '%s' not found.\n", id); return; }
 
     printf("\nCurrent: [%s] %s by %s (%d) | Copies: %d/%d\n",
-           library[idx].id, library[idx].title, library[idx].author,
-           library[idx].year, library[idx].availableCopies, library[idx].totalCopies);
+            library[idx].id, library[idx].title, library[idx].author,
+            library[idx].year, library[idx].availableCopies, library[idx].totalCopies);
     printf("Enter new values (press Enter to keep current):\n");
 
     char buf[TITLE_LEN];
@@ -118,4 +118,30 @@ void updateBook() {
         if (library[idx].availableCopies < 0) library[idx].availableCopies = 0;
     }
     printf("Book updated successfully.\n");
+}
+
+/* ── 3. Borrow Book ──────────────────────────────────────── */
+
+void borrowBook() {
+    if (borrowCount >= MAX_BORROWS) { printf("Borrow records full.\n"); return; }
+    char id[ID_LEN];
+    readLine("Enter Book ID to borrow: ", id, ID_LEN);
+    int idx = findBook(id);
+    if (idx == -1) { printf("Book ID '%s' not found.\n", id); return; }
+    if (library[idx].availableCopies <= 0) {
+        printf("No copies of '%s' currently available.\n", library[idx].title);
+        return;
+    }
+    BorrowRecord rec;
+    generateBorrowId(rec.borrowId);
+    strcpy(rec.bookId, id);
+    readLine("Student Name : ", rec.studentName, NAME_LEN);
+    readLine("Student ID   : ", rec.studentId,   ID_LEN);
+    readLine("Borrow Date (DD/MM/YYYY): ", rec.borrowDate, 20);
+    strcpy(rec.returnDate, "");
+    rec.returned = 0;
+    library[idx].availableCopies--;
+    borrows[borrowCount++] = rec;
+    printf("\nBook '%s' borrowed! Record ID: %s | Copies left: %d\n",
+            library[idx].title, rec.borrowId, library[idx].availableCopies);
 }
