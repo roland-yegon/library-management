@@ -17,3 +17,24 @@
 #define AUTHOR_LEN    60
 #define ID_LEN        10
 #define NAME_LEN      60
+
+/* ── Data Structures ─────────────────────────────────────── */
+
+typedef struct {
+    char   id[ID_LEN];
+    char   title[TITLE_LEN];
+    char   author[AUTHOR_LEN];
+    int    year;
+    int    totalCopies;
+    int    availableCopies;
+} Book;
+
+typedef struct {
+    char borrowId[ID_LEN];
+    char bookId[ID_LEN];
+    char studentName[NAME_LEN];
+    char studentId[ID_LEN];
+    char borrowDate[20];
+    char returnDate[20];
+    int  returned;
+} BorrowRecord;
