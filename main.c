@@ -227,3 +227,39 @@ void reportBorrowedBooks() {
     printf("  Total on loan: %d\n", count);
     printLine();
 }
+
+/* ── Main Menu ───────────────────────────────────────────── */
+
+int main() {
+    int choice;
+    do {
+        printf("\n==================================================\n");
+        printf("   LIBRARY MANAGEMENT SYSTEM - TU MOMBASA\n");
+        printf("==================================================\n");
+        printf("  1. Add Book\n");
+        printf("  2. Update Book\n");
+        printf("  3. Borrow Book\n");
+        printf("  4. Return Book\n");
+        printf("  5. Display All Books\n");
+        printf("  6. Report: Available Books\n");
+        printf("  7. Report: Borrowed Books\n");
+        printf("  0. Exit\n");
+        printf("--------------------------------------------------\n");
+        printf("  Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1: addBook();              break;
+            case 2: updateBook();           break;
+            case 3: borrowBook();           break;
+            case 4: returnBook();           break;
+            case 5: displayAllBooks();      break;
+            case 6: reportAvailableBooks(); break;
+            case 7: reportBorrowedBooks();  break;
+            case 0: printf("Goodbye!\n");   break;
+            default: printf("Invalid choice. Please try again.\n");
+        }
+    } while (choice != 0);
+
+    return 0;
+}
