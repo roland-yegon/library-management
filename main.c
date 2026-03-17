@@ -97,8 +97,8 @@ void updateBook() {
     if (idx == -1) { printf("Book ID '%s' not found.\n", id); return; }
 
     printf("\nCurrent: [%s] %s by %s (%d) | Copies: %d/%d\n",
-            library[idx].id, library[idx].title, library[idx].author,
-            library[idx].year, library[idx].availableCopies, library[idx].totalCopies);
+           library[idx].id, library[idx].title, library[idx].author,
+           library[idx].year, library[idx].availableCopies, library[idx].totalCopies);
     printf("Enter new values (press Enter to keep current):\n");
 
     char buf[TITLE_LEN];
@@ -113,8 +113,8 @@ void updateBook() {
     int cp; scanf("%d", &cp);
     if (cp != 0) {
         int diff = cp - library[idx].totalCopies;
-        library[idx].totalCopies = cp;
-        library[idx].availableCopies += diff;
+       library[idx].totalCopies = cp;
+       library[idx].availableCopies += diff;
         if (library[idx].availableCopies < 0) library[idx].availableCopies = 0;
     }
     printf("Book updated successfully.\n");
@@ -163,4 +163,23 @@ void returnBook() {
     int idx = findBook(borrows[found].bookId);
     if (idx != -1) library[idx].availableCopies++;
     printf("\nBook returned successfully. Thank you, %s!\n", borrows[found].studentName);
+}
+
+/* ── 5. Display All Books ────────────────────────────────── */
+
+void displayAllBooks() {
+    printLine();
+    printf("  ALL BOOKS IN CATALOGUE\n");
+    printLine();
+    if (bookCount == 0) { printf("  No books in the catalogue.\n"); }
+    else {
+        for (int i = 0; i < bookCount; i++) {
+            printf("  [%s] %s\n       Author : %s\n       Year   : %d\n       Copies : %d available / %d total\n\n",
+                   library[i].id, library[i].title, library[i].author,
+                   library[i].year, library[i].availableCopies, library[i].totalCopies);
+        }
+    }
+    printLine();
+    printf("  Total titles: %d\n", bookCount);
+    printLine();
 }
