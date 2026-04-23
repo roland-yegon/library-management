@@ -3,10 +3,15 @@
 #include <stdlib.h>
 
 #define MAX_BOOKS 100
-#define MAX_BORROWS 100
+#define MAX_BORROWS 200
 #define ID_LEN 10
 #define TITLE_LEN 100
 #define AUTHOR_LEN 100
+
+#define BOOK_FILE "books.dat"
+#define BORROW_FILE "borrows.dat"
+
+/* ---------------- STRUCTS ---------------- */
 
 typedef struct {
     char id[ID_LEN];
@@ -20,8 +25,10 @@ typedef struct {
 typedef struct {
     char borrowId[ID_LEN];
     char bookId[ID_LEN];
-    int isReturned;
+    int returned;
 } BorrowRecord;
+
+/* ---------------- GLOBAL DATA ---------------- */
 
 Book library[MAX_BOOKS];
 BorrowRecord borrows[MAX_BORROWS];
@@ -29,14 +36,52 @@ BorrowRecord borrows[MAX_BORROWS];
 int bookCount = 0;
 int borrowCount = 0;
 
-/* ---------------- UTILITIES ---------------- */
+/* ---------------- INPUT HANDLING ---------------- */
 
-void readLine(char *buffer, int size) {
+void getInput(char *buffer, int size) {
     fgets(buffer, size, stdin);
     buffer[strcspn(buffer, "\n")] = 0;
 }
 
-int findBookIndex(char *id) {
+/* ---------------- FILE HANDLING ---------------- */
+
+void loadData() {
+    FILE *f1 = fopen(BOOK_FILE, "rb");
+    FILE *f2 = fopen(BORROW_FILE, "rb");
+
+    if (f1) {
+        fread(&bookCount, sizeof(int), 1, f1);
+        fread(library, sizeof(Book), bookCount, f1);
+        fclose(f1);
+    }
+
+    if (f2) {
+        fread(&borrowCount, sizeof(int), 1, f2);
+        fread(borrows, sizeof(BorrowRecord), borrowCount, f2);
+        fclose(f2);
+    }
+}
+
+void saveData() {
+    FILE *f1 = fopen(BOOK_FILE, "wb");
+    FILE *f2 = fopen(BORROW_FILE, "wb");
+
+    if (f1) {
+        fwrite(&bookCount, sizeof(int), 1, f1);
+        fwrite(library, sizeof(Book), bookCount, f1);
+        fclose(f1);
+    }
+
+    if (f2) {
+        fwrite(&borrowCount, sizeof(int), 1, f2);
+        fwrite(borrows, sizeof(BorrowRecord), borrowCount, f2);
+        fclose(f2);
+    }
+}
+
+/* ---------------- UTILITIES ---------------- */
+
+int findBook(char id[]) {
     for (int i = 0; i < bookCount; i++) {
         if (strcmp(library[i].id, id) == 0)
             return i;
@@ -44,35 +89,35 @@ int findBookIndex(char *id) {
     return -1;
 }
 
-void generateBookId(char *id) {
+void createBookId(char id[]) {
     sprintf(id, "B%03d", bookCount + 1);
 }
 
-void generateBorrowId(char *id) {
+void createBorrowId(char id[]) {
     sprintf(id, "R%03d", borrowCount + 1);
 }
 
-/* ---------------- CORE FUNCTIONS ---------------- */
+/* ---------------- CORE FEATURES ---------------- */
 
 void addBook() {
     if (bookCount >= MAX_BOOKS) {
-        printf("Library full!\n");
+        printf("Library full\n");
         return;
     }
 
     Book b;
-    generateBookId(b.id);
+    createBookId(b.id);
 
-    printf("Enter title: ");
-    readLine(b.title, TITLE_LEN);
+    printf("Title: ");
+    getInput(b.title, TITLE_LEN);
 
-    printf("Enter author: ");
-    readLine(b.author, AUTHOR_LEN);
+    printf("Author: ");
+    getInput(b.author, AUTHOR_LEN);
 
-    printf("Enter year: ");
+    printf("Year: ");
     scanf("%d", &b.year);
 
-    printf("Enter total copies: ");
+    printf("Total copies: ");
     scanf("%d", &b.totalCopies);
     getchar();
 
@@ -80,19 +125,17 @@ void addBook() {
 
     library[bookCount++] = b;
 
-    printf("Book added successfully! ID: %s\n", b.id);
+    printf("Book added (ID: %s)\n", b.id);
 }
 
 void viewBooks() {
     if (bookCount == 0) {
-        printf("No books available.\n");
+        printf("No books available\n");
         return;
     }
 
-    printf("\n--- Library Books ---\n");
-
     for (int i = 0; i < bookCount; i++) {
-        printf("ID: %s | Title: %s | Author: %s | Year: %d | Available: %d/%d\n",
+        printf("\nID: %s\nTitle: %s\nAuthor: %s\nYear: %d\nAvailable: %d/%d\n",
                 library[i].id,
                 library[i].title,
                 library[i].author,
@@ -102,46 +145,56 @@ void viewBooks() {
     }
 }
 
+/* FIXED STATE LOGIC */
 void updateBook() {
     char id[ID_LEN];
-    printf("Enter book ID to update: ");
-    readLine(id, ID_LEN);
+    int index;
 
-    int index = findBookIndex(id);
+    printf("Book ID: ");
+    getInput(id, ID_LEN);
+
+    index = findBook(id);
 
     if (index == -1) {
-        printf("Book not found.\n");
+        printf("Not found\n");
         return;
     }
 
-    printf("Enter new title: ");
-    readLine(library[index].title, TITLE_LEN);
+    printf("New title: ");
+    getInput(library[index].title, TITLE_LEN);
 
-    printf("Enter new author: ");
-    readLine(library[index].author, AUTHOR_LEN);
+    printf("New author: ");
+    getInput(library[index].author, AUTHOR_LEN);
 
-    printf("Enter new year: ");
+    printf("New year: ");
     scanf("%d", &library[index].year);
 
-    printf("Enter new total copies: ");
-    scanf("%d", &library[index].totalCopies);
+    printf("New total copies: ");
+    int newTotal;
+    scanf("%d", &newTotal);
     getchar();
 
-    library[index].availableCopies = library[index].totalCopies;
+    int borrowed = library[index].totalCopies - library[index].availableCopies;
 
-    printf("Book updated successfully.\n");
+    library[index].totalCopies = newTotal;
+    library[index].availableCopies = newTotal - borrowed;
+
+    if (library[index].availableCopies < 0)
+        library[index].availableCopies = 0;
+
+    printf("Updated successfully\n");
 }
 
 void searchBook() {
     char title[TITLE_LEN];
-    printf("Enter title to search: ");
-    readLine(title, TITLE_LEN);
-
     int found = 0;
+
+    printf("Search title: ");
+    getInput(title, TITLE_LEN);
 
     for (int i = 0; i < bookCount; i++) {
         if (strstr(library[i].title, title)) {
-            printf("ID: %s | Title: %s | Author: %s\n",
+            printf("ID:%s | %s | %s\n",
                     library[i].id,
                     library[i].title,
                     library[i].author);
@@ -150,79 +203,111 @@ void searchBook() {
     }
 
     if (!found)
-        printf("No matching books found.\n");
+        printf("No match found\n");
 }
 
 void borrowBook() {
-    char id[ID_LEN];
-    printf("Enter book ID to borrow: ");
-    readLine(id, ID_LEN);
+    if (borrowCount >= MAX_BORROWS) {
+        printf("Borrow storage full\n");
+        return;
+    }
 
-    int index = findBookIndex(id);
+    char id[ID_LEN];
+    printf("Book ID: ");
+    getInput(id, ID_LEN);
+
+    int index = findBook(id);
 
     if (index == -1) {
-        printf("Book not found.\n");
+        printf("Not found\n");
         return;
     }
 
     if (library[index].availableCopies <= 0) {
-        printf("No copies available.\n");
+        printf("No copies available\n");
         return;
     }
 
-    BorrowRecord br;
-    generateBorrowId(br.borrowId);
-    strcpy(br.bookId, id);
-    br.isReturned = 0;
+    BorrowRecord b;
+    createBorrowId(b.borrowId);
 
-    borrows[borrowCount++] = br;
+    strcpy(b.bookId, id);
+    b.returned = 0;
+
+    borrows[borrowCount++] = b;
     library[index].availableCopies--;
 
-    printf("Book borrowed successfully. Borrow ID: %s\n", br.borrowId);
+    printf("Borrowed. ID: %s\n", b.borrowId);
 }
 
 void returnBook() {
-    char borrowId[ID_LEN];
-    printf("Enter borrow ID: ");
-    readLine(borrowId, ID_LEN);
+    char id[ID_LEN];
+
+    printf("Borrow ID: ");
+    getInput(id, ID_LEN);
 
     for (int i = 0; i < borrowCount; i++) {
-        if (strcmp(borrows[i].borrowId, borrowId) == 0 && borrows[i].isReturned == 0) {
+        if (strcmp(borrows[i].borrowId, id) == 0 && borrows[i].returned == 0) {
 
-            int bookIndex = findBookIndex(borrows[i].bookId);
+            int bookIndex = findBook(borrows[i].bookId);
 
             if (bookIndex != -1) {
                 library[bookIndex].availableCopies++;
             }
 
-            borrows[i].isReturned = 1;
+            borrows[i].returned = 1;
 
-            printf("Book returned successfully.\n");
+            printf("Returned successfully\n");
             return;
         }
     }
 
-    printf("Invalid borrow ID or already returned.\n");
+    printf("Invalid borrow ID\n");
+}
+
+/* DELETE BOOK (SHIFT ARRAY SAFELY) */
+void deleteBook() {
+    char id[ID_LEN];
+    printf("Book ID to delete: ");
+    getInput(id, ID_LEN);
+
+    int index = findBook(id);
+
+    if (index == -1) {
+        printf("Not found\n");
+        return;
+    }
+
+    for (int i = index; i < bookCount - 1; i++) {
+        library[i] = library[i + 1];
+    }
+
+    bookCount--;
+
+    printf("Book deleted\n");
 }
 
 /* ---------------- MENU ---------------- */
 
 void menu() {
-    printf("\n====== LIBRARY SYSTEM ======\n");
+    printf("\n===== LIBRARY SYSTEM =====\n");
     printf("1. Add Book\n");
     printf("2. View Books\n");
     printf("3. Update Book\n");
     printf("4. Search Book\n");
     printf("5. Borrow Book\n");
     printf("6. Return Book\n");
-    printf("7. Exit\n");
-    printf("Choose option: ");
+    printf("7. Delete Book\n");
+    printf("8. Save & Exit\n");
+    printf("Choice: ");
 }
 
 /* ---------------- MAIN ---------------- */
 
 int main() {
     int choice;
+
+    loadData();
 
     while (1) {
         menu();
@@ -236,13 +321,13 @@ int main() {
             case 4: searchBook(); break;
             case 5: borrowBook(); break;
             case 6: returnBook(); break;
-            case 7:
-                printf("Exiting system...\n");
-                exit(0);
+            case 7: deleteBook(); break;
+            case 8:
+                saveData();
+                printf("Saved. Exiting...\n");
+                return 0;
             default:
-                printf("Invalid option.\n");
+                printf("Invalid option\n");
         }
     }
-
-    return 0;
 }
