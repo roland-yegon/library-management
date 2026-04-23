@@ -93,12 +93,12 @@ void viewBooks() {
 
     for (int i = 0; i < bookCount; i++) {
         printf("ID: %s | Title: %s | Author: %s | Year: %d | Available: %d/%d\n",
-               library[i].id,
-               library[i].title,
-               library[i].author,
-               library[i].year,
-               library[i].availableCopies,
-               library[i].totalCopies);
+                library[i].id,
+                library[i].title,
+                library[i].author,
+                library[i].year,
+                library[i].availableCopies,
+                library[i].totalCopies);
     }
 }
 
@@ -142,9 +142,9 @@ void searchBook() {
     for (int i = 0; i < bookCount; i++) {
         if (strstr(library[i].title, title)) {
             printf("ID: %s | Title: %s | Author: %s\n",
-                   library[i].id,
-                   library[i].title,
-                   library[i].author);
+                    library[i].id,
+                    library[i].title,
+                    library[i].author);
             found = 1;
         }
     }
