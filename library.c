@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define FILENAME "library.dat"
 #define MAX_TITLE 100
 #define MAX_AUTHOR 50
+#define MAX_BOOKS 500
 
 // Book structure
 typedef struct
@@ -12,8 +14,8 @@ typedef struct
     int bookID;
     char title[MAX_TITLE];
     char author[MAX_AUTHOR];
-    int quantity; // Total copies available
-    int issued;   // Number of copies currently borrowed
+    int quantity;
+    int issued;
 } Book;
 
 // Function prototypes
@@ -25,18 +27,20 @@ void deleteBook();
 void borrowBook();
 void returnBook();
 void generateReport();
+
 int loadBooks(Book books[], int max);
 void saveBooks(Book books[], int count);
 int findBookByID(Book books[], int count, int id);
-int findBookByTitle(Book books[], int count, char *title);
+void toLowerCase(char *str);
+int isValidBookID(int id);
 
-// Main menu
+// ====================== MAIN ======================
 int main()
 {
     int choice;
     while (1)
     {
-        printf("\n=== LIBRARY MANAGEMENT SYSTEM ===\n");
+        printf("\n=== MOMBASA MODERN LIBRARY MANAGEMENT SYSTEM ===\n");
         printf("1. Add New Book\n");
         printf("2. Display All Books\n");
         printf("3. Search Book\n");
@@ -48,7 +52,7 @@ int main()
         printf("9. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
-        getchar(); // Consume newline
+        getchar(); // consume newline
 
         switch (choice)
         {
@@ -77,7 +81,7 @@ int main()
             generateReport();
             break;
         case 9:
-            printf("Thank you for using the Library Management System!\n");
+            printf("Thank you for using our Library Management System!\n");
             return 0;
         default:
             printf("Invalid choice! Please try again.\n");
@@ -86,13 +90,13 @@ int main()
     return 0;
 }
 
-// Load all books from binary file into array
+// Load books from binary file
 int loadBooks(Book books[], int max)
 {
     FILE *file = fopen(FILENAME, "rb");
     if (file == NULL)
     {
-        return 0; // No file or empty
+        return 0;
     }
     int count = 0;
     while (count < max && fread(&books[count], sizeof(Book), 1, file) == 1)
@@ -103,7 +107,7 @@ int loadBooks(Book books[], int max)
     return count;
 }
 
-// Save all books from array to binary file
+// Save books to binary file
 void saveBooks(Book books[], int count)
 {
     FILE *file = fopen(FILENAME, "wb");
@@ -116,7 +120,7 @@ void saveBooks(Book books[], int count)
     fclose(file);
 }
 
-// Find book index by ID
+// Find book by ID
 int findBookByID(Book books[], int count, int id)
 {
     for (int i = 0; i < count; i++)
@@ -129,39 +133,48 @@ int findBookByID(Book books[], int count, int id)
     return -1;
 }
 
-// Find book index by Title (partial match)
-int findBookByTitle(Book books[], int count, char *title)
+// Convert string to lowercase for case-insensitive search
+void toLowerCase(char *str)
 {
-    for (int i = 0; i < count; i++)
+    for (int i = 0; str[i]; i++)
     {
-        if (strstr(books[i].title, title) != NULL)
-        {
-            return i;
-        }
+        str[i] = tolower((unsigned char)str[i]);
     }
-    return -1;
 }
 
-// Add a new book
+// Validate Book ID (1000 to 999999)
+int isValidBookID(int id)
+{
+    return (id >= 1000 && id <= 999999);
+}
+
+// ====================== ADD BOOK ======================
 void addBook()
 {
-    Book books[500];
-    int count = loadBooks(books, 500);
+    Book books[MAX_BOOKS];
+    int count = loadBooks(books, MAX_BOOKS);
 
     Book newBook;
-    printf("\nEnter Book ID: ");
+
+    printf("\nEnter Book ID (1000 - 999999): ");
     scanf("%d", &newBook.bookID);
     getchar();
 
+    if (!isValidBookID(newBook.bookID))
+    {
+        printf("Error: Book ID must be between 1000 and 999999!\n");
+        return;
+    }
+
     if (findBookByID(books, count, newBook.bookID) != -1)
     {
-        printf("Error: Book ID already exists!\n");
+        printf("Error: Book ID %d already exists!\n", newBook.bookID);
         return;
     }
 
     printf("Enter Title: ");
     fgets(newBook.title, MAX_TITLE, stdin);
-    newBook.title[strcspn(newBook.title, "\n")] = 0; // Remove newline
+    newBook.title[strcspn(newBook.title, "\n")] = 0;
 
     printf("Enter Author: ");
     fgets(newBook.author, MAX_AUTHOR, stdin);
@@ -173,49 +186,55 @@ void addBook()
 
     if (newBook.quantity <= 0)
     {
-        printf("Quantity must be positive!\n");
+        printf("Error: Quantity must be positive!\n");
         return;
     }
 
     books[count] = newBook;
     saveBooks(books, count + 1);
-    printf("Book added successfully!\n");
+    printf("Book added successfully! (ID: %d)\n", newBook.bookID);
 }
 
-// Display all books
+// ====================== DISPLAY BOOKS ======================
 void displayBooks()
 {
-    Book books[500];
-    int count = loadBooks(books, 500);
+    Book books[MAX_BOOKS];
+    int count = loadBooks(books, MAX_BOOKS);
     if (count == 0)
     {
         printf("No books in the library.\n");
         return;
     }
-    printf("\n%-5s %-30s %-25s %-10s %-10s\n", "ID", "Title", "Author", "Quantity", "Issued");
-    printf("---------------------------------------------------------------\n");
+
+    printf("\n%-6s %-35s %-25s %-10s %-10s\n", "ID", "Title", "Author", "Quantity", "Issued");
+    printf("---------------------------------------------------------------------\n");
     for (int i = 0; i < count; i++)
     {
-        printf("%-5d %-30s %-25s %-10d %-10d\n",
+        printf("%-6d %-35s %-25s %-10d %-10d\n",
                 books[i].bookID, books[i].title, books[i].author,
                 books[i].quantity, books[i].issued);
     }
 }
 
-// Search for a book
+// ====================== SEARCH BOOK ======================
 void searchBook()
 {
-    Book books[500];
-    int count = loadBooks(books, 500);
+    Book books[MAX_BOOKS];
+    int count = loadBooks(books, MAX_BOOKS);
     if (count == 0)
     {
-        printf("No books available.\n");
+        printf("No books available in the library.\n");
         return;
     }
 
-    int choice, id, idx;
-    char title[MAX_TITLE];
-    printf("\nSearch by:\n1. Book ID\n2. Title\nChoice: ");
+    int choice, id, found = 0;
+    char searchTerm[MAX_TITLE];
+    char tempTitle[MAX_TITLE];
+
+    printf("\nSearch by:\n");
+    printf("1. Book ID\n");
+    printf("2. Title (case-insensitive + partial/keyword)\n");
+    printf("Enter choice: ");
     scanf("%d", &choice);
     getchar();
 
@@ -223,34 +242,75 @@ void searchBook()
     {
         printf("Enter Book ID: ");
         scanf("%d", &id);
-        idx = findBookByID(books, count, id);
-    }
-    else
-    {
-        printf("Enter Title (partial): ");
-        fgets(title, MAX_TITLE, stdin);
-        title[strcspn(title, "\n")] = 0;
-        idx = findBookByTitle(books, count, title);
+        getchar();
+
+        int idx = findBookByID(books, count, id);
+        if (idx != -1)
+        {
+            printf("\nBook Found:\n");
+            printf("ID       : %d\n", books[idx].bookID);
+            printf("Title    : %s\n", books[idx].title);
+            printf("Author   : %s\n", books[idx].author);
+            printf("Quantity : %d\n", books[idx].quantity);
+            printf("Issued   : %d\n", books[idx].issued);
+            printf("Available: %d\n", books[idx].quantity - books[idx].issued);
+        }
+        else
+        {
+            printf("Book with ID %d not found!\n", id);
+        }
+        return;
     }
 
-    if (idx == -1)
+    // Title search - improved
+    printf("Enter any word or part of the title: ");
+    fgets(searchTerm, MAX_TITLE, stdin);
+    searchTerm[strcspn(searchTerm, "\n")] = 0;
+
+    if (strlen(searchTerm) == 0)
     {
-        printf("Book not found!\n");
+        printf("Search term cannot be empty!\n");
+        return;
+    }
+
+    toLowerCase(searchTerm);
+
+    printf("\nSearch Results for \"%s\":\n", searchTerm);
+    printf("%-6s %-35s %-25s %-10s %-10s\n", "ID", "Title", "Author", "Qty", "Issued");
+    printf("---------------------------------------------------------------------\n");
+
+    for (int i = 0; i < count; i++)
+    {
+        strcpy(tempTitle, books[i].title);
+        toLowerCase(tempTitle);
+
+        if (strstr(tempTitle, searchTerm) != NULL)
+        {
+            printf("%-6d %-35s %-25s %-10d %-10d\n",
+                    books[i].bookID,
+                    books[i].title,
+                    books[i].author,
+                    books[i].quantity,
+                    books[i].issued);
+            found++;
+        }
+    }
+
+    if (found == 0)
+    {
+        printf("No books found matching your search.\n");
     }
     else
     {
-        printf("\nBook Found:\n");
-        printf("ID: %d\nTitle: %s\nAuthor: %s\nQuantity: %d\nIssued: %d\n",
-                books[idx].bookID, books[idx].title, books[idx].author,
-                books[idx].quantity, books[idx].issued);
+        printf("\n%d book(s) found.\n", found);
     }
 }
 
-// Update book details
+// ====================== UPDATE BOOK ======================
 void updateBook()
 {
-    Book books[500];
-    int count = loadBooks(books, 500);
+    Book books[MAX_BOOKS];
+    int count = loadBooks(books, MAX_BOOKS);
     if (count == 0)
     {
         printf("No books to update.\n");
@@ -260,16 +320,39 @@ void updateBook()
     int id, idx;
     printf("Enter Book ID to update: ");
     scanf("%d", &id);
-    idx = findBookByID(books, count, id);
+    getchar();
 
+    idx = findBookByID(books, count, id);
     if (idx == -1)
     {
-        printf("Book not found!\n");
+        printf("Book with ID %d not found!\n", id);
         return;
     }
 
-    printf("Enter new Title (or press Enter to keep): ");
+    // Update ID (optional)
+    printf("Current ID: %d\n", books[idx].bookID);
+    printf("Enter new Book ID (1000-999999) or 0 to keep: ");
+    int newID;
+    scanf("%d", &newID);
     getchar();
+
+    if (newID != 0)
+    {
+        if (!isValidBookID(newID))
+        {
+            printf("Error: New Book ID must be between 1000 and 999999!\n");
+            return;
+        }
+        if (newID != books[idx].bookID && findBookByID(books, count, newID) != -1)
+        {
+            printf("Error: Book ID %d already exists!\n", newID);
+            return;
+        }
+        books[idx].bookID = newID;
+    }
+
+    // Update Title
+    printf("Enter new Title (or press Enter to keep): ");
     char temp[MAX_TITLE];
     fgets(temp, MAX_TITLE, stdin);
     if (temp[0] != '\n')
@@ -278,6 +361,7 @@ void updateBook()
         strcpy(books[idx].title, temp);
     }
 
+    // Update Author
     printf("Enter new Author (or press Enter to keep): ");
     fgets(temp, MAX_TITLE, stdin);
     if (temp[0] != '\n')
@@ -286,6 +370,7 @@ void updateBook()
         strcpy(books[idx].author, temp);
     }
 
+    // Update Quantity
     printf("Enter new Quantity (or -1 to keep): ");
     int qty;
     scanf("%d", &qty);
@@ -293,7 +378,7 @@ void updateBook()
     {
         if (qty < books[idx].issued)
         {
-            printf("Cannot set quantity less than issued books!\n");
+            printf("Error: Cannot set quantity less than currently issued books!\n");
             return;
         }
         books[idx].quantity = qty;
@@ -303,11 +388,11 @@ void updateBook()
     printf("Book updated successfully!\n");
 }
 
-// Delete a book
+// ====================== DELETE BOOK ======================
 void deleteBook()
 {
-    Book books[500];
-    int count = loadBooks(books, 500);
+    Book books[MAX_BOOKS];
+    int count = loadBooks(books, MAX_BOOKS);
     if (count == 0)
     {
         printf("No books to delete.\n");
@@ -317,28 +402,30 @@ void deleteBook()
     int id, idx;
     printf("Enter Book ID to delete: ");
     scanf("%d", &id);
-    idx = findBookByID(books, count, id);
+    getchar();
 
+    idx = findBookByID(books, count, id);
     if (idx == -1)
     {
-        printf("Book not found!\n");
+        printf("Book with ID %d not found!\n", id);
         return;
     }
 
-    // Shift remaining books
+    // Shift remaining books left
     for (int i = idx; i < count - 1; i++)
     {
         books[i] = books[i + 1];
     }
+
     saveBooks(books, count - 1);
     printf("Book deleted successfully!\n");
 }
 
-// Borrow a book
+// ====================== BORROW BOOK ======================
 void borrowBook()
 {
-    Book books[500];
-    int count = loadBooks(books, 500);
+    Book books[MAX_BOOKS];
+    int count = loadBooks(books, MAX_BOOKS);
     if (count == 0)
     {
         printf("No books available.\n");
@@ -348,8 +435,9 @@ void borrowBook()
     int id, idx;
     printf("Enter Book ID to borrow: ");
     scanf("%d", &id);
-    idx = findBookByID(books, count, id);
+    getchar();
 
+    idx = findBookByID(books, count, id);
     if (idx == -1)
     {
         printf("Book not found!\n");
@@ -364,15 +452,15 @@ void borrowBook()
 
     books[idx].issued++;
     saveBooks(books, count);
-    printf("Book borrowed successfully! (Remaining copies: %d)\n",
+    printf("Book borrowed successfully! Remaining copies: %d\n",
             books[idx].quantity - books[idx].issued);
 }
 
-// Return a book
+// ====================== RETURN BOOK ======================
 void returnBook()
 {
-    Book books[500];
-    int count = loadBooks(books, 500);
+    Book books[MAX_BOOKS];
+    int count = loadBooks(books, MAX_BOOKS);
     if (count == 0)
     {
         printf("No books in library.\n");
@@ -382,8 +470,9 @@ void returnBook()
     int id, idx;
     printf("Enter Book ID to return: ");
     scanf("%d", &id);
-    idx = findBookByID(books, count, id);
+    getchar();
 
+    idx = findBookByID(books, count, id);
     if (idx == -1)
     {
         printf("Book not found!\n");
@@ -401,39 +490,38 @@ void returnBook()
     printf("Book returned successfully!\n");
 }
 
-// Generate reports
+// ====================== GENERATE REPORT ======================
 void generateReport()
 {
-    Book books[500];
-    int count = loadBooks(books, 500);
+    Book books[MAX_BOOKS];
+    int count = loadBooks(books, MAX_BOOKS);
     if (count == 0)
     {
         printf("No books in the library.\n");
         return;
     }
 
-    int totalBooks = 0, totalIssued = 0, totalAvailable = 0;
+    int totalQuantity = 0, totalIssued = 0;
 
     printf("\n=== LIBRARY REPORT ===\n");
-    printf("%-5s %-30s %-10s %-10s\n", "ID", "Title", "Available", "Issued");
-    printf("---------------------------------------------\n");
+    printf("%-6s %-35s %-10s %-10s\n", "ID", "Title", "Available", "Issued");
+    printf("---------------------------------------------------------------\n");
 
     for (int i = 0; i < count; i++)
     {
         int available = books[i].quantity - books[i].issued;
-        printf("%-5d %-30s %-10d %-10d\n",
+        printf("%-6d %-35s %-10d %-10d\n",
                 books[i].bookID, books[i].title, available, books[i].issued);
 
-        totalBooks += books[i].quantity;
+        totalQuantity += books[i].quantity;
         totalIssued += books[i].issued;
-        totalAvailable += available;
     }
 
-    printf("\nTotal Books in Library : %d\n", totalBooks);
-    printf("Total Available        : %d\n", totalAvailable);
-    printf("Total Borrowed         : %d\n", totalIssued);
+    printf("\nTotal Books in Library : %d\n", totalQuantity);
+    printf("Currently Available    : %d\n", totalQuantity - totalIssued);
+    printf("Currently Borrowed     : %d\n", totalIssued);
 
-    // List of borrowed books
+    // List borrowed books
     printf("\n=== CURRENTLY BORROWED BOOKS ===\n");
     int borrowedCount = 0;
     for (int i = 0; i < count; i++)
